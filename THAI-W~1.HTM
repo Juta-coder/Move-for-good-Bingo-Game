@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thai Wah Moves For Good Lucky Draw</title>
+<style>
+  :root{
+    --navy:#19226C;
+    --blue:#01A5DC;
+    --white:#FFFFFF;
+    --gold:#FFD166;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:'Segoe UI','Noto Sans Thai','Sarabun',Tahoma,sans-serif;
+    background:var(--navy);
+    color:var(--white);
+    overflow-x:hidden;
+  }
+
+  /* ---------- Background: running track / motion lines ---------- */
+  .bg-track{
+    position:fixed;inset:0;z-index:0;overflow:hidden;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(1,165,220,0.35), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(1,165,220,0.25), transparent 50%),
+      linear-gradient(135deg, #10164f 0%, #19226C 45%, #0d3d63 100%);
+  }
+  .bg-track::before{
+    content:"";
+    position:absolute;inset:-50%;
+    background-image:repeating-linear-gradient(
+      120deg,
+      rgba(255,255,255,0.05) 0px,
+      rgba(255,255,255,0.05) 2px,
+      transparent 2px,
+      transparent 60px
+    );
+    animation:trackMove 6s linear infinite;
+  }
+  @keyframes trackMove{
+    0%{transform:translate(0,0);}
+    100%{transform:translate(60px,60px);}
+  }
+  .lane-line{
+    position:absolute;left:0;right:0;height:6px;
+    background:repeating-linear-gradient(90deg, var(--white) 0 40px, transparent 40px 80px);
+    opacity:0.12;
+  }
+  .lane-line.l1{top:18%; animation:laneScroll 3.5s linear infinite;}
+  .lane-line.l2{top:46%; animation:laneScroll 4.2s linear infinite reverse;}
+  .lane-line.l3{top:74%; animation:laneScroll 3.8s linear infinite;}
+  @keyframes laneScroll{
+    0%{background-position-x:0;}
+    100%{background-position-x:160px;}
+  }
+  .shoe-drift{
+    position:absolute;font-size:2.2rem;opacity:0.10;
+    animation:driftUp linear infinite;
+    filter:blur(0.3px);
+  }
+  @keyframes driftUp{
+    0%{transform:translateY(110vh) rotate(0deg);}
+    100%{transform:translateY(-15vh) rotate(25deg);}
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap{
+    position:relative;z-index:1;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+    padding:clamp(16px,3vw,40px);
+    text-align:center;
+  }
+  header{margin-top:clamp(10px,2vh,30px);}
+  h1{
+    font-size:clamp(1.8rem,4.2vw,3.6rem);
+    margin:0 0 10px 0;
+    font-weight:800;
+    letter-spacing:0.5px;
+    text-shadow:0 0 18px rgba(1,165,220,0.7), 0 0 4px #fff;
+  }
+  .subtitle{
+    font-size:clamp(1rem,1.6vw,1.5rem);
+    color:var(--gold);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .count-line{
+    font-size:clamp(0.85rem,1.1vw,1.1rem);
+    color:rgba(255,255,255,0.75);
+    margin-bottom:10px;
+  }
+
+  /* ---------- Draw button ---------- */
+  .draw-btn{
+    margin:clamp(18px,3vh,34px) 0;
+    padding:clamp(18px,2.2vw,28px) clamp(30px,4vw,60px);
+    font-size:clamp(1.3rem,2.6vw,2.2rem);
+    font-weight:800;
+    color:var(--navy);
+    background:linear-gradient(135deg,#fff,#bfe9fb 40%, var(--blue));
+    border:none;border-radius:100px;
+    cursor:pointer;
+    box-shadow:0 0 25px rgba(1,165,220,0.85), 0 8px 20px rgba(0,0,0,0.35);
+    transition:transform .15s ease;
+    animation:btnPulse 2.2s ease-in-out infinite;
+  }
+  .draw-btn:hover{transform:scale(1.04);}
+  .draw-btn:disabled{opacity:0.55;cursor:not-allowed;animation:none;}
+  @keyframes btnPulse{
+    0%,100%{box-shadow:0 0 20px rgba(1,165,220,0.7), 0 8px 20px rgba(0,0,0,0.35);}
+    50%{box-shadow:0 0 45px rgba(1,165,220,1), 0 8px 26px rgba(0,0,0,0.4);}
+  }
+
+  .redraw-btn{
+    margin-top:clamp(16px,2.5vh,28px);
+    padding:14px 34px;
+    font-size:clamp(1rem,1.6vw,1.4rem);
+    font-weight:700;
+    color:var(--white);
+    background:transparent;
+    border:2px solid var(--white);
+    border-radius:100px;cursor:pointer;
+    transition:all .2s ease;
+  }
+  .redraw-btn:hover{background:var(--white);color:var(--navy);}
+
+  /* ---------- Countdown ---------- */
+  .countdown{
+    font-size:clamp(4rem,10vw,9rem);
+    font-weight:900;
+    color:var(--gold);
+    text-shadow:0 0 40px rgba(255,209,102,0.9);
+    display:none;
+  }
+  .countdown.show{display:block; animation:countPop 0.9s ease;}
+  @keyframes countPop{
+    0%{transform:scale(0.4);opacity:0;}
+    50%{transform:scale(1.15);opacity:1;}
+    100%{transform:scale(1);opacity:1;}
+  }
+
+  /* ---------- Reel (slot machine) ---------- */
+  .reel-frame{
+    display:none;
+    position:relative;
+    width:min(720px,92vw);
+    height:clamp(220px,32vh,340px);
+    margin:10px auto;
+    border-radius:24px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(1,165,220,0.10));
+    border:3px solid var(--blue);
+    overflow:hidden;
+    box-shadow:0 0 0 6px rgba(255,255,255,0.05), 0 0 40px rgba(1,165,220,0.55);
+  }
+  .reel-frame.show{display:block;animation:frameGlow 1.4s ease-in-out infinite;}
+  @keyframes frameGlow{
+    0%,100%{box-shadow:0 0 0 6px rgba(255,255,255,0.05), 0 0 30px rgba(1,165,220,0.5);}
+    50%{box-shadow:0 0 0 6px rgba(255,255,255,0.12), 0 0 65px rgba(1,165,220,0.95);}
+  }
+  .reel-frame::before, .reel-frame::after{
+    content:"";position:absolute;left:0;right:0;height:45%;
+    pointer-events:none;z-index:2;
+  }
+  .reel-frame::before{top:0;background:linear-gradient(180deg, rgba(25,34,108,0.95), transparent);}
+  .reel-frame::after{bottom:0;background:linear-gradient(0deg, rgba(25,34,108,0.95), transparent);}
+  .reel-center-line{
+    position:absolute;top:50%;left:6%;right:6%;height:clamp(52px,7vh,72px);
+    transform:translateY(-50%);
+    border-top:2px solid var(--gold);
+    border-bottom:2px solid var(--gold);
+    z-index:3;pointer-events:none;
+  }
+  .reel-track{
+    position:absolute;left:0;right:0;top:0;
+    display:flex;flex-direction:column;align-items:center;
+  }
+  .reel-item{
+    height:clamp(52px,7vh,72px);
+    display:flex;align-items:center;justify-content:center;
+    font-size:clamp(1.1rem,2.4vw,1.9rem);
+    font-weight:700;
+    color:#fff;
+    width:100%;
+  }
+
+  /* ---------- Results ---------- */
+  .results{
+    display:none;
+    width:min(1100px,96vw);
+    margin-top:10px;
+  }
+  .results.show{display:block;}
+  .congrats{
+    font-size:clamp(1.6rem,3.2vw,2.6rem);
+    font-weight:800;color:var(--gold);
+    text-shadow:0 0 20px rgba(255,209,102,0.8);
+    margin-bottom:2px;
+    animation:bounceIn .6s ease;
+  }
+  .thankyou{
+    font-size:clamp(1rem,1.6vw,1.4rem);
+    color:var(--white);
+    margin-bottom:20px;
+    font-style:italic;
+  }
+  .winner-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:16px;
+  }
+  .winner-card{
+    background:linear-gradient(160deg, rgba(255,255,255,0.95), rgba(210,240,255,0.9));
+    color:var(--navy);
+    border-radius:16px;
+    padding:16px 10px;
+    font-weight:800;
+    font-size:clamp(0.95rem,1.5vw,1.25rem);
+    box-shadow:0 0 0 3px var(--blue), 0 10px 22px rgba(0,0,0,0.35);
+    opacity:0;
+    transform:translateY(40px) scale(0.7);
+    animation:bounceIn .6s forwards;
+    position:relative;
+  }
+  .winner-card .num{
+    display:block;
+    font-size:clamp(1.6rem,2.6vw,2.1rem);
+    color:var(--blue);
+    margin-bottom:4px;
+  }
+  @keyframes bounceIn{
+    0%{opacity:0;transform:translateY(40px) scale(0.7);}
+    60%{opacity:1;transform:translateY(-8px) scale(1.05);}
+    100%{opacity:1;transform:translateY(0) scale(1);}
+  }
+
+  canvas#confetti-canvas{
+    position:fixed;inset:0;pointer-events:none;z-index:50;
+  }
+
+  footer{
+    margin-top:auto;padding-top:24px;
+    font-size:0.8rem;color:rgba(255,255,255,0.5);
+  }
+
+  @media (min-width:1600px){
+    h1{font-size:4.4rem;}
+    .subtitle{font-size:1.8rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-track">
+  <div class="lane-line l1"></div>
+  <div class="lane-line l2"></div>
+  <div class="lane-line l3"></div>
+</div>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="wrap">
+  <header>
+    <h1>🏃 Thai Wah Moves For Good Lucky Draw</h1>
+    <div class="subtitle">"รางวัลพิเศษสำหรับผู้ร่วมกิจกรรม Move for Good Challenge"</div>
+    <div class="count-line" id="countLine"></div>
+  </header>
+
+  <button class="draw-btn" id="drawBtn">🎉 สุ่มผู้โชคดี 10 ท่าน 🎉</button>
+
+  <div class="countdown" id="countdown">3</div>
+
+  <div class="reel-frame" id="reelFrame">
+    <div class="reel-center-line"></div>
+    <div class="reel-track" id="reelTrack"></div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="congrats">🎊 Congratulations! 🎊</div>
+    <div class="thankyou">Thank you for moving for good</div>
+    <div class="winner-grid" id="winnerGrid"></div>
+    <button class="redraw-btn" id="redrawBtn">🔄 สุ่มใหม่</button>
+  </div>
+
+  <footer>Thai Wah Group · Moves For Good Challenge</footer>
+</div>
+
+<script>
+/* ================= Participant Data ================= */
+const rawNames = [
+"Jirapha Sasunun","พิไลลักษณ์ เอกอุ่น","ณัฐภัสสร สรชาย","นันทภัทร ไชยวงค์",
+"Mathaphol Laopiganonta","Iris Latay","กชามาส พยนต์ภาค","ศกุนิชญ์ พรมจันทร์",
+"ณัฐชนันทน์ เทียมพันธ์","พิพัฒน์ สละสำลี","นันทิตา วุ้นประเสริฐ","นพคุณ ลิขิตธนประสงค์",
+"Bunpanya Supkaew","สุนทรี จิตต์สว่างดี","Nutthida Noomtan","บงกชมาศ  มีภูมิรู้",
+"เยาวนีย์ โฆษิตศรีคุณากร","ฺเบญจมาศ ประทีปพรณรงค์","Kajornsak Baojanghan","คัทลียา ฉวีงาม",
+"นภรรศษรฑ์ อลงกรณ์โสภิต","สรคม ชาดวิริยะปรีชา","อมรรัตน์ วาลีประโคน","ยศกร สีหาบุญทอง",
+"สุชญา ฉันทอธิพงศ์","กิติณัฐ แสนรักษ์","JIRAPORN KORSRILABUT","Sureena Khanijow",
+"อรวรรณ เจริญเรืองยุทธ","Sakaret Choengdi","กมณทัตษวรรณ์ ภาคีวัฒน์","ณัฐกิตต์ พัฒน์ลำภู",
+"วีรดา รักพานิชมณี","ปิ่นปินัทธ์ พัฒน์ธนาโอฬาร","สุรัสวดี ไทยาพงศ์สกุล","Stayu Saelee",
+"กรชนก ภูริเอกพรสกุล","หทัยชนก ถิระปรารมณ์","วิภาดา เกียรติวุฒิไกร","จิดาภา พลเรียงโพน",
+"อรวรรณ เจริญปรัชญากุล","Urassaya Sanchai","พิชามญชุ์ พรมฮวด","ณัฏฐ์ชุดา เอี่ยมสำอางค์",
+"จุฑาภรณ์ ลัภนนันทกุล","วรรณนิภา ทุริดไธสง","ชนม์นิภา โอมอภิญญาณ","เมตตา ดาวลอย",
+"กนกนิภา ภิรมย์","ภัสพิรา เกื้อสกุล","Navaporn Wongpipopmongkol","ภคนันท์ สิริศรีวณิช",
+"Nuengpharida Srijantrachon","อาภารัฐ ศรีสว่าง","วทัญญู เลิศพงศ์ปรีชา","Panu Prapakmontien",
+"ณัฏฐจิรา เกษโกมล","ธิรัมพร ลิ้มพัฒนวงศา","Mary Minalen Villagracia","Sasikasem Sukwibul",
+"ธพัฒน เกตุแก้วมณี","Panwara Kulpiyaratthawong","ประกายเพชร กิติยานันท์","เกียรติสกุล กาญจนาภา",
+"บุญญาภา สัควัฒนะ","ธิรัมพร","ภัสสร พิริยะเสถียรกุล","ณัฐวรรณ กล้วยไม้งาม",
+"ธัญชนก ยาพิกุล","ศักดิ์สยาม มหาสมบัติ","Yolchanok Choomnoy","ดวงกมล จิรพรเกษมสุข",
+"ยลชนก ชุ่มน้อย","ณัฏฐจิรา เกษโกมล","Pinlada Viratudomsin","Chulalak Santiyanon",
+"จิดาภา วรวงษ์","วรินทร แท้ชัยศรี","นภัสกนก คุณศักดิ์พิทักษ์","Nitcha Suwongtham",
+"Natchuda Eiamsam-Ang","พิณลดา วิรัตน์อุดมสิน","Sakaret Choengdi ","Stayi Saelee",
+"จารุบุญ จำเริญศรี","สมจิตต์ วงศ์ชั้น","JIRAPORN KORSRILABUT ","สราวลี สาคร",
+"อาภารัฐ ศรีสส่าง","ณัชนันทน์ เทียมพันธ์","Ratkhacha Juntarasuwan ","นันทิตา วุ้นปรเสริฐ",
+"สุชญา ฉันทอธิงพงศ์","ปาริภัทร์ โรจนสิตโสภณ","Thanapat Jarupeng","เกียรติสกล กาญจนาภา",
+"Ta-paath KETKAEWMANEE","Settharat","ศิริพร กำศิริพิมาน","SASIKASEM",
+"ณัฏฐ์ชุดา เอี่ยมำสำอางค์","อาภารัฐ ศรสว่าง","อาภารัฐ","สุพิชชา ลือคำแผง",
+"Ekkaphong","ชนม์นิภา โอมอภิญาณ","พิชามญชุ์ พรมฮวด","ธิรัมพี"
+];
+
+/* Remove duplicates automatically (trim whitespace, keep first occurrence) */
+function dedupe(list){
+  const seen = new Set();
+  const out = [];
+  for(const raw of list){
+    const name = raw.trim().replace(/\s+/g," ");
+    if(name.length === 0) continue;
+    if(!seen.has(name)){
+      seen.add(name);
+      out.push(name);
+    }
+  }
+  return out;
+}
+const participants = dedupe(rawNames);
+document.getElementById('countLine').textContent =
+  `ฐานข้อมูลผู้เข้าร่วม (ไม่ซ้ำกัน): ${participants.length} ท่าน`;
+
+/* ================= Audio (Web Audio API, no external files) ================= */
+let audioCtx;
+function ctx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTick(){
+  try{
+    const c = ctx();
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = 'square';
+    o.frequency.value = 950;
+    g.gain.value = 0.05;
+    o.connect(g); g.connect(c.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.06);
+    o.stop(c.currentTime + 0.07);
+  }catch(e){}
+}
+function playCheer(){
+  try{
+    const c = ctx();
+    const notes = [523.25,659.25,783.99,1046.5];
+    notes.forEach((f,i)=>{
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      g.gain.value = 0.0001;
+      o.connect(g); g.connect(c.destination);
+      const t0 = c.currentTime + i*0.12;
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(0.09, t0+0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+0.5);
+      o.start(t0); o.stop(t0+0.55);
+    });
+  }catch(e){}
+}
+
+/* ================= Confetti ================= */
+const cvs = document.getElementById('confetti-canvas');
+const cctx = cvs.getContext('2d');
+function resizeCanvas(){ cvs.width = innerWidth; cvs.height = innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+let particles = [];
+const confettiColors = ['#01A5DC','#FFFFFF','#FFD166','#19226C','#5fd0f2'];
+function spawnConfetti(count, opts={}){
+  const dense = opts.dense || false;
+  for(let i=0;i<count;i++){
+    particles.push({
+      x: Math.random()*cvs.width,
+      y: dense ? -20 - Math.random()*100 : Math.random()*cvs.height*0.3 - 20,
+      vx: (Math.random()-0.5)*(dense?4:2),
+      vy: 2 + Math.random()*(dense?5:3),
+      size: 5 + Math.random()*7,
+      rot: Math.random()*360,
+      vr: (Math.random()-0.5)*10,
+      color: confettiColors[Math.floor(Math.random()*confettiColors.length)],
+      life: 0,
+      maxLife: 120 + Math.random()*80
+    });
+  }
+}
+function animateConfetti(){
+  cctx.clearRect(0,0,cvs.width,cvs.height);
+  particles = particles.filter(p => p.life < p.maxLife && p.y < cvs.height + 30);
+  for(const p of particles){
+    p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
+    cctx.save();
+    cctx.translate(p.x,p.y);
+    cctx.rotate(p.rot*Math.PI/180);
+    cctx.fillStyle = p.color;
+    cctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+    cctx.restore();
+  }
+  requestAnimationFrame(animateConfetti);
+}
+animateConfetti();
+
+/* ================= Draw Logic ================= */
+const drawBtn = document.getElementById('drawBtn');
+const redrawBtn = document.getElementById('redrawBtn');
+const countdownEl = document.getElementById('countdown');
+const reelFrame = document.getElementById('reelFrame');
+const reelTrack = document.getElementById('reelTrack');
+const resultsEl = document.getElementById('results');
+const winnerGrid = document.getElementById('winnerGrid');
+
+const ITEM_H = () => {
+  const sample = document.querySelector('.reel-item');
+  return sample ? sample.offsetHeight : 64;
+};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function buildReelFiller(){
+  // Build a long scrolling list of random names for visual effect
+  reelTrack.innerHTML = '';
+  reelTrack.style.transform = 'translateY(0)';
+  const fillerCount = 60;
+  const frag = document.createDocumentFragment();
+  for(let i=0;i<fillerCount;i++){
+    const div = document.createElement('div');
+    div.className = 'reel-item';
+    div.textContent = participants[Math.floor(Math.random()*participants.length)];
+    frag.appendChild(div);
+  }
+  reelTrack.appendChild(frag);
+}
+
+function runReelAnimation(durationMs, onDone){
+  buildReelFiller();
+  const items = Array.from(reelTrack.children);
+  let idx = 0;
+  const start = performance.now();
+  let lastTick = 0;
+
+  function frame(now){
+    const elapsed = now - start;
+    const t = Math.min(elapsed / durationMs, 1);
+    // ease-out cubic for deceleration feel
+    const eased = 1 - Math.pow(1-t, 3);
+    // interval speeds up->slows down: map t to a changing step interval
+    const minInterval = 40;   // fast at start
+    const maxInterval = 260;  // slow near end
+    const currentInterval = minInterval + (maxInterval-minInterval)*eased;
+
+    if(now - lastTick > currentInterval){
+      lastTick = now;
+      // swap displayed names to simulate motion (cheap: just rewrite text of a rotating window)
+      const h = ITEM_H();
+      idx++;
+      reelTrack.style.transform = `translateY(-${(idx%items.length)*h}px)`;
+      // recycle: refresh far-behind items with new random names so it looks endless
+      const recycle = items[idx % items.length];
+      recycle.textContent = participants[Math.floor(Math.random()*participants.length)];
+      if(t < 0.95) playTick();
+      // occasional light effects while spinning
+      if(Math.random() < 0.12) spawnConfetti(3);
+    }
+
+    if(elapsed < durationMs){
+      requestAnimationFrame(frame);
+    }else{
+      onDone();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function runCountdown(cb){
+  const seq = ['3','2','1','GO!'];
+  let i = 0;
+  countdownEl.classList.remove('show');
+  reelFrame.classList.remove('show');
+  function step(){
+    countdownEl.textContent = seq[i];
+    countdownEl.classList.remove('show');
+    void countdownEl.offsetWidth; // restart animation
+    countdownEl.classList.add('show');
+    playTick();
+    i++;
+    if(i < seq.length){
+      setTimeout(step, 550);
+    }else{
+      setTimeout(()=>{
+        countdownEl.classList.remove('show');
+        cb();
+      }, 500);
+    }
+  }
+  step();
+}
+
+function showResults(winners){
+  reelFrame.classList.remove('show');
+  winnerGrid.innerHTML = '';
+  winners.forEach((name, i) => {
+    const card = document.createElement('div');
+    card.className = 'winner-card';
+    card.style.animationDelay = `${i*0.12}s`;
+    card.innerHTML = `<span class="num">#${i+1}</span>${name}`;
+    winnerGrid.appendChild(card);
+  });
+  resultsEl.classList.add('show');
+  spawnConfetti(220, {dense:true});
+  setTimeout(()=>spawnConfetti(150,{dense:true}), 300);
+  setTimeout(()=>spawnConfetti(150,{dense:true}), 700);
+  playCheer();
+  drawBtn.style.display = 'none';
+}
+
+function startDraw(){
+  drawBtn.disabled = true;
+  resultsEl.classList.remove('show');
+
+  runCountdown(() => {
+    reelFrame.classList.add('show');
+    const DURATION = 9000; // ~9 seconds within the 8-10s spec
+    runReelAnimation(DURATION, () => {
+      const winnerCount = Math.min(10, participants.length);
+      const winners = shuffle(participants).slice(0, winnerCount);
+      showResults(winners);
+      drawBtn.disabled = false;
+    });
+  });
+}
+
+drawBtn.addEventListener('click', startDraw);
+redrawBtn.addEventListener('click', () => {
+  resultsEl.classList.remove('show');
+  drawBtn.style.display = 'inline-block';
+  startDraw();
+});
+
+/* ================= Decorative drifting shoe icons ================= */
+(function initShoes(){
+  const bg = document.querySelector('.bg-track');
+  const icons = ['👟','🏃','👟','🏃‍♀️'];
+  for(let i=0;i<10;i++){
+    const el = document.createElement('div');
+    el.className = 'shoe-drift';
+    el.textContent = icons[i % icons.length];
+    el.style.left = (Math.random()*100) + 'vw';
+    el.style.animationDuration = (10 + Math.random()*12) + 's';
+    el.style.animationDelay = (Math.random()*10) + 's';
+    bg.appendChild(el);
+  }
+})();
+</script>
+</body>
+</html>
