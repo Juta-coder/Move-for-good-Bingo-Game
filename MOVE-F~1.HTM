@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Move for Good Lucky Bingo</title>
+<style>
+  :root{
+    --dark-blue:#19226c;
+    --light-blue:#01a5dc;
+    --white:#ffffff;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{
+    height:100%;
+    width:100%;
+    overflow:hidden;
+    font-family:'Segoe UI', 'Noto Sans Thai', Tahoma, sans-serif;
+    background:var(--dark-blue);
+    color:var(--white);
+  }
+  #app{
+    position:relative;
+    height:100vh;
+    width:100vw;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(1,165,220,0.25), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(1,165,220,0.2), transparent 45%),
+      linear-gradient(160deg, #10164a 0%, var(--dark-blue) 55%, #0d1350 100%);
+    overflow:hidden;
+  }
+
+  /* ---------- Background: only the moving GPS dashed track ---------- */
+  .bg-layer{ position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  .gps-track{
+    position:absolute; inset:0;
+    opacity:0.35;
+  }
+  .gps-track svg{ width:100%; height:100%; }
+  .gps-dash{
+    stroke-dasharray: 18 14;
+    animation: dashMove 6s linear infinite;
+  }
+  @keyframes dashMove{
+    to{ stroke-dashoffset: -320; }
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:relative; z-index:2;
+    width:100%;
+    text-align:center;
+    padding: clamp(10px, 2vh, 26px) 20px 4px;
+  }
+  h1{
+    font-size: clamp(1.4rem, 3.6vw, 2.6rem);
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 18px rgba(1,165,220,0.65), 0 2px 6px rgba(0,0,0,0.4);
+    color: var(--white);
+    font-weight: 800;
+  }
+  header .subtitle{
+    margin-top:4px;
+    font-size: clamp(0.85rem, 1.6vw, 1.15rem);
+    color: var(--light-blue);
+    font-weight:500;
+  }
+
+  .counter-badge{
+    position:absolute;
+    top: clamp(10px, 2vh, 26px);
+    right: 22px;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid var(--light-blue);
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: clamp(0.8rem, 1.3vw, 1rem);
+    font-weight:700;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 14px rgba(1,165,220,0.35);
+  }
+  .counter-badge b{ color: var(--light-blue); font-size:1.05em; }
+
+  .icon-btn{
+    position:absolute;
+    top: clamp(10px, 2vh, 26px);
+    left: 22px;
+    display:flex;
+    gap:10px;
+  }
+  .icon-btn button{
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid var(--light-blue);
+    color: var(--white);
+    border-radius: 50%;
+    width:44px; height:44px;
+    font-size:1.2rem;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform .15s ease, background .2s ease;
+  }
+  .icon-btn button:hover{ background: rgba(1,165,220,0.35); transform: scale(1.08); }
+
+  /* ---------- Main number stage ---------- */
+  main{
+    position:relative; z-index:2;
+    flex:1;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:0;
+  }
+  .stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    user-select:none;
+  }
+  .number-display{
+    font-size: min(48vh, 42vw);
+    line-height:0.85;
+    font-weight:900;
+    color: var(--white);
+    text-shadow:
+      0 0 40px rgba(1,165,220,0.9),
+      0 0 90px rgba(1,165,220,0.5),
+      0 8px 18px rgba(0,0,0,0.45);
+    letter-spacing: -2px;
+    transition: transform .12s ease;
+  }
+  .km-label{
+    margin-top: 0.5vh;
+    font-size: clamp(1.4rem, 5vw, 4rem);
+    font-weight:800;
+    letter-spacing: 10px;
+    color: var(--light-blue);
+    text-shadow: 0 0 20px rgba(1,165,220,0.7);
+  }
+  .hint{
+    margin-top:18px;
+    font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+    color: rgba(255,255,255,0.55);
+  }
+
+  .number-display.countdown{
+    color: var(--light-blue);
+    font-size: min(38vh, 34vw);
+  }
+
+  @keyframes zoomBounce{
+    0%{ transform: scale(0.2); opacity:0; }
+    55%{ transform: scale(1.18); opacity:1; }
+    75%{ transform: scale(0.94); }
+    100%{ transform: scale(1); }
+  }
+  .reveal{ animation: zoomBounce 0.55s cubic-bezier(.34,1.56,.64,1) both; }
+
+  @keyframes flashBg{
+    0%,100%{ filter:none; }
+    30%{ filter:brightness(1.9) saturate(1.3); }
+  }
+  .flash{ animation: flashBg 0.5s ease-out; }
+
+  @keyframes pulseCount{
+    0%{ transform:scale(0.6); opacity:0; }
+    30%{ transform:scale(1.1); opacity:1; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+  .count-pulse{ animation: pulseCount 0.9s ease both; }
+
+  /* ---------- Controls ---------- */
+  .controls{
+    position:relative; z-index:2;
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    justify-content:center;
+    padding: 10px 16px 6px;
+  }
+  .btn{
+    border:none;
+    border-radius: 14px;
+    font-weight:800;
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    padding: 14px 26px;
+    cursor:pointer;
+    color: var(--white);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+  }
+  .btn:active{ transform: translateY(2px) scale(0.98); }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; }
+  .btn-primary{ background: linear-gradient(135deg, var(--light-blue), #0288b8); }
+  .btn-primary:hover:not(:disabled){ box-shadow: 0 0 24px rgba(1,165,220,0.75); }
+  .btn-bingo{ background: linear-gradient(135deg, #ffb703, #fb8500); }
+  .btn-bingo:hover:not(:disabled){ box-shadow: 0 0 24px rgba(255,183,3,0.7); }
+  .btn-reset{ background: rgba(255,255,255,0.12); border:1.5px solid rgba(255,255,255,0.4); }
+  .btn-reset:hover{ background: rgba(255,255,255,0.22); }
+  .btn-fullscreen{ background: rgba(255,255,255,0.12); border:1.5px solid var(--light-blue); }
+  .btn-fullscreen:hover{ background: rgba(1,165,220,0.3); }
+
+  /* ---------- History ---------- */
+  .history-wrap{
+    position:relative; z-index:2;
+    width:100%;
+    max-width: 1100px;
+    padding: 6px 20px 18px;
+  }
+  .history-title{
+    font-size: clamp(0.8rem, 1.3vw, 1rem);
+    color: rgba(255,255,255,0.65);
+    margin-bottom:8px;
+    font-weight:700;
+    letter-spacing:1px;
+  }
+  .history-scroll{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--light-blue) transparent;
+  }
+  .history-scroll::-webkit-scrollbar{ height:6px; }
+  .history-scroll::-webkit-scrollbar-thumb{ background:var(--light-blue); border-radius:6px; }
+  .badge{
+    flex: 0 0 auto;
+    min-width:44px; height:44px;
+    border-radius:50%;
+    background: rgba(255,255,255,0.1);
+    border: 1.5px solid var(--light-blue);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800;
+    font-size:0.95rem;
+    color:var(--white);
+  }
+  .badge.latest{
+    background: var(--light-blue);
+    box-shadow: 0 0 16px rgba(1,165,220,0.8);
+  }
+  .empty-note{ color: rgba(255,255,255,0.4); font-size:0.9rem; }
+
+  /* ---------- Presenter / Fullscreen mode ---------- */
+  body.presenter header,
+  body.presenter .controls,
+  body.presenter .history-wrap,
+  body.presenter .icon-btn{
+    display:none !important;
+  }
+  body.presenter .number-display{ font-size: min(58vh, 50vw); }
+  body.presenter .exit-hint{
+    display:block;
+  }
+  .exit-hint{
+    display:none;
+    position:absolute;
+    bottom: 14px;
+    right: 20px;
+    z-index:3;
+    font-size:0.85rem;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ---------- Modal (reset confirm) ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(10,14,45,0.75);
+    backdrop-filter: blur(3px);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:50;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background: var(--dark-blue);
+    border: 1.5px solid var(--light-blue);
+    border-radius:18px;
+    padding: 32px 36px;
+    text-align:center;
+    max-width: 420px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .modal h2{ font-size:1.4rem; margin-bottom:14px; }
+  .modal p{ color: rgba(255,255,255,0.75); margin-bottom:24px; line-height:1.5; }
+  .modal-actions{ display:flex; gap:14px; justify-content:center; }
+  .modal-actions .btn{ padding:12px 22px; }
+
+  /* ---------- Bingo celebration ---------- */
+  #bingoOverlay{
+    position:fixed; inset:0;
+    background: radial-gradient(circle at 50% 40%, #123 0%, var(--dark-blue) 70%);
+    display:none;
+    flex-direction:column;
+    align-items:center; justify-content:center;
+    z-index:100;
+    text-align:center;
+  }
+  #bingoOverlay.show{ display:flex; }
+  #confettiCanvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .bingo-text{
+    position:relative; z-index:2;
+    font-size: clamp(3rem, 12vw, 9rem);
+    font-weight:900;
+    color: #ffd60a;
+    text-shadow: 0 0 40px rgba(255,214,10,0.8), 0 6px 14px rgba(0,0,0,0.5);
+    animation: bingoPop 0.7s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .bingo-sub{
+    position:relative; z-index:2;
+    margin-top:10px;
+    font-size: clamp(1.2rem, 3.5vw, 2.4rem);
+    font-weight:700;
+    color: var(--white);
+  }
+  @keyframes bingoPop{
+    0%{ transform: scale(0.3) rotate(-8deg); opacity:0; }
+    60%{ transform: scale(1.15) rotate(2deg); opacity:1; }
+    100%{ transform: scale(1) rotate(0); }
+  }
+
+  @media (max-width: 640px){
+    .controls{ gap:8px; }
+    .btn{ padding:11px 16px; font-size:0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="bg-layer gps-track">
+    <svg viewBox="0 0 1000 600" preserveAspectRatio="none">
+      <path class="gps-dash" d="M -50 500 C 150 350, 250 550, 450 400 S 700 200, 950 300" fill="none" stroke="#01a5dc" stroke-width="3"/>
+      <path class="gps-dash" d="M -50 120 C 200 220, 350 20, 600 120 S 850 260, 1050 150" fill="none" stroke="#01a5dc" stroke-width="2"/>
+    </svg>
+  </div>
+
+  <div class="icon-btn">
+    <button id="soundToggle" title="เปิด/ปิดเสียง">🔊</button>
+  </div>
+  <div class="counter-badge" id="counterBadge">ออกแล้ว <b>0</b> / 75 หมายเลข</div>
+
+  <header>
+    <h1>Move for Good Lucky Bingo</h1>
+    <div class="subtitle">ร่วมสนุกและลุ้นรับรางวัลไปด้วยกัน</div>
+  </header>
+
+  <main>
+    <div class="stage">
+      <div class="number-display" id="numberDisplay">?</div>
+      <div class="km-label" id="kmLabel">KM</div>
+      <div class="hint" id="hintText">กดปุ่ม 🎲 สุ่มตัวเลข เพื่อเริ่มเกม</div>
+    </div>
+  </main>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="drawBtn">🎲 สุ่มตัวเลข</button>
+    <button class="btn btn-bingo" id="bingoBtn">🎉 มีผู้เล่น Bingo!</button>
+    <button class="btn btn-reset" id="resetBtn">🔄 เริ่มเกมใหม่</button>
+    <button class="btn btn-fullscreen" id="fullscreenBtn">⛶ Full Screen</button>
+  </div>
+
+  <div class="history-wrap">
+    <div class="history-title">เลขที่ออกแล้ว</div>
+    <div class="history-scroll" id="historyScroll">
+      <span class="empty-note">ยังไม่มีเลขออก</span>
+    </div>
+  </div>
+
+  <div class="exit-hint">กด Esc เพื่อออกจากโหมดเต็มจอ | Space = สุ่มเลข</div>
+</div>
+
+<div class="overlay" id="resetOverlay">
+  <div class="modal">
+    <h2>ยืนยันเริ่มเกมใหม่?</h2>
+    <p>ระบบจะล้างเลขที่ออกทั้งหมด และเริ่มสุ่มใหม่ตั้งแต่ 1–75</p>
+    <div class="modal-actions">
+      <button class="btn btn-reset" id="cancelReset">ยกเลิก</button>
+      <button class="btn btn-primary" id="confirmReset">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<div id="bingoOverlay">
+  <canvas id="confettiCanvas"></canvas>
+  <div class="bingo-text">BINGO!</div>
+  <div class="bingo-sub">ยินดีด้วย 🎉</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const TOTAL = 75;
+  let remaining = [];
+  let called = [];
+  let soundOn = true;
+  let isDrawing = false;
+
+  const numberDisplay = document.getElementById('numberDisplay');
+  const kmLabel = document.getElementById('kmLabel');
+  const hintText = document.getElementById('hintText');
+  const historyScroll = document.getElementById('historyScroll');
+  const counterBadge = document.getElementById('counterBadge');
+  const drawBtn = document.getElementById('drawBtn');
+  const bingoBtn = document.getElementById('bingoBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const soundToggle = document.getElementById('soundToggle');
+  const resetOverlay = document.getElementById('resetOverlay');
+  const cancelReset = document.getElementById('cancelReset');
+  const confirmReset = document.getElementById('confirmReset');
+  const bingoOverlay = document.getElementById('bingoOverlay');
+  const confettiCanvas = document.getElementById('confettiCanvas');
+
+  function initPool(){
+    remaining = [];
+    for(let i=1;i<=TOTAL;i++) remaining.push(i);
+    called = [];
+  }
+  initPool();
+
+  // ---------- Sound (Web Audio API, no external files) ----------
+  let audioCtx = null;
+  function ctx(){
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+    }
+    return audioCtx;
+  }
+  function beep(freq, dur, type, delay, vol){
+    if(!soundOn) return;
+    try{
+      const c = ctx();
+      const start = c.currentTime + (delay||0);
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(vol || 0.25, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + (dur||0.2));
+      osc.connect(gain).connect(c.destination);
+      osc.start(start);
+      osc.stop(start + (dur||0.2) + 0.05);
+    }catch(e){ /* audio unavailable, ignore */ }
+  }
+  function playCountdownTick(){ beep(440, 0.15, 'square'); }
+  function playReveal(){
+    beep(660, 0.15, 'triangle', 0);
+    beep(880, 0.2, 'triangle', 0.12);
+    beep(1100, 0.3, 'triangle', 0.24);
+  }
+  function playBingoFanfare(){
+    const notes = [523,659,784,1046,784,1046];
+    notes.forEach((f,i)=> beep(f, 0.28, 'sawtooth', i*0.16, 0.2));
+  }
+
+  soundToggle.addEventListener('click', ()=>{
+    soundOn = !soundOn;
+    soundToggle.textContent = soundOn ? '🔊' : '🔇';
+  });
+
+  // ---------- Rendering ----------
+  function renderCounter(){
+    counterBadge.innerHTML = 'ออกแล้ว <b>' + called.length + '</b> / ' + TOTAL + ' หมายเลข';
+  }
+
+  function renderHistory(){
+    if(called.length === 0){
+      historyScroll.innerHTML = '<span class="empty-note">ยังไม่มีเลขออก</span>';
+      return;
+    }
+    const ordered = called.slice().reverse();
+    historyScroll.innerHTML = ordered.map((n, idx)=>
+      '<span class="badge' + (idx===0 ? ' latest' : '') + '">' + n + '</span>'
+    ).join('');
+  }
+
+  function setButtonsDuringDraw(disabled){
+    drawBtn.disabled = disabled;
+    resetBtn.disabled = disabled;
+  }
+
+  // ---------- Draw logic ----------
+  function drawNumber(){
+    if(isDrawing) return;
+    if(remaining.length === 0){
+      hintText.textContent = 'ออกครบทั้ง 75 หมายเลขแล้ว! กดเริ่มเกมใหม่';
+      return;
+    }
+    isDrawing = true;
+    setButtonsDuringDraw(true);
+    hintText.textContent = 'กำลังสุ่ม...';
+    numberDisplay.classList.remove('reveal','flash');
+    kmLabel.style.visibility = 'hidden';
+
+    let count = 3;
+    numberDisplay.classList.add('countdown');
+    numberDisplay.textContent = count;
+    playCountdownTick();
+
+    const timer = setInterval(()=>{
+      count -= 1;
+      if(count > 0){
+        numberDisplay.classList.remove('count-pulse');
+        void numberDisplay.offsetWidth; // restart animation
+        numberDisplay.classList.add('count-pulse');
+        numberDisplay.textContent = count;
+        playCountdownTick();
+      } else {
+        clearInterval(timer);
+        revealNumber();
+      }
+    }, 700);
+  }
+
+  function revealNumber(){
+    const idx = Math.floor(Math.random() * remaining.length);
+    const num = remaining.splice(idx, 1)[0];
+    called.push(num);
+
+    numberDisplay.classList.remove('countdown','count-pulse');
+    kmLabel.style.visibility = 'visible';
+    numberDisplay.textContent = num;
+    numberDisplay.classList.add('reveal','flash');
+    playReveal();
+
+    renderCounter();
+    renderHistory();
+
+    if(remaining.length === 0){
+      hintText.textContent = 'ออกครบทั้ง 75 หมายเลขแล้ว!';
+    } else {
+      hintText.textContent = 'กดปุ่ม 🎲 สุ่มตัวเลข เพื่อออกเลขถัดไป';
+    }
+
+    isDrawing = false;
+    setButtonsDuringDraw(false);
+  }
+
+  drawBtn.addEventListener('click', drawNumber);
+
+  // ---------- Reset ----------
+  resetBtn.addEventListener('click', ()=> resetOverlay.classList.add('show'));
+  cancelReset.addEventListener('click', ()=> resetOverlay.classList.remove('show'));
+  confirmReset.addEventListener('click', ()=>{
+    resetOverlay.classList.remove('show');
+    initPool();
+    numberDisplay.classList.remove('reveal','flash','countdown','count-pulse');
+    numberDisplay.textContent = '?';
+    kmLabel.style.visibility = 'visible';
+    hintText.textContent = 'กดปุ่ม 🎲 สุ่มตัวเลข เพื่อเริ่มเกม';
+    renderCounter();
+    renderHistory();
+  });
+
+  // ---------- Fullscreen / presenter mode ----------
+  function enterFullscreen(){
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if(req) req.call(el);
+    document.body.classList.add('presenter');
+  }
+  function exitFullscreenMode(){
+    document.body.classList.remove('presenter');
+  }
+  fullscreenBtn.addEventListener('click', enterFullscreen);
+  document.addEventListener('fullscreenchange', ()=>{
+    if(!document.fullscreenElement) exitFullscreenMode();
+  });
+  document.addEventListener('webkitfullscreenchange', ()=>{
+    if(!document.webkitFullscreenElement) exitFullscreenMode();
+  });
+
+  // ---------- Bingo celebration ----------
+  let confettiRunning = false;
+  function launchConfetti(){
+    const canvas = confettiCanvas;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    const cctx = canvas.getContext('2d');
+    cctx.scale(dpr, dpr);
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const colors = ['#01a5dc', '#ffd60a', '#ffffff', '#ff6b6b', '#19226c'];
+    const pieces = [];
+    for(let i=0;i<160;i++){
+      pieces.push({
+        x: Math.random()*w,
+        y: -20 - Math.random()*h,
+        size: 6 + Math.random()*8,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        speedY: 2 + Math.random()*4,
+        speedX: (Math.random()-0.5)*3,
+        rot: Math.random()*360,
+        rotSpeed: (Math.random()-0.5)*10
+      });
+    }
+    confettiRunning = true;
+    function frame(){
+      if(!confettiRunning) return;
+      cctx.clearRect(0,0,w,h);
+      pieces.forEach(p=>{
+        p.y += p.speedY;
+        p.x += p.speedX;
+        p.rot += p.rotSpeed;
+        if(p.y > h + 20){ p.y = -20; p.x = Math.random()*w; }
+        cctx.save();
+        cctx.translate(p.x, p.y);
+        cctx.rotate(p.rot * Math.PI/180);
+        cctx.fillStyle = p.color;
+        cctx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
+        cctx.restore();
+      });
+      requestAnimationFrame(frame);
+    }
+    frame();
+  }
+  function stopConfetti(){
+    confettiRunning = false;
+    const cctx = confettiCanvas.getContext('2d');
+    cctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+  }
+
+  function triggerBingo(){
+    bingoOverlay.classList.add('show');
+    launchConfetti();
+    playBingoFanfare();
+    setTimeout(()=>{
+      bingoOverlay.classList.remove('show');
+      stopConfetti();
+    }, 6500);
+  }
+  bingoBtn.addEventListener('click', triggerBingo);
+  bingoOverlay.addEventListener('click', ()=>{
+    bingoOverlay.classList.remove('show');
+    stopConfetti();
+  });
+
+  // ---------- Keyboard shortcuts (handy in presenter/fullscreen mode) ----------
+  document.addEventListener('keydown', (e)=>{
+    if(e.code === 'Space'){ e.preventDefault(); drawNumber(); }
+    if(e.key === 'b' || e.key === 'B'){ triggerBingo(); }
+    if(e.key === 'f' || e.key === 'F'){ enterFullscreen(); }
+  });
+
+  // ---------- init render ----------
+  renderCounter();
+  renderHistory();
+})();
+</script>
+</body>
+</html>

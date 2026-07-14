@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Move for Good Lucky Bingo</title>
+<style>
+  :root{
+    --dark-blue:#19226c;
+    --light-blue:#01a5dc;
+    --white:#ffffff;
+    --dark-blue-soft: rgba(25,34,108,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;min-height:100%;
+    font-family:'Segoe UI',Tahoma,'Trebuchet MS',Arial,sans-serif;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(1,165,220,0.35), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(1,165,220,0.25), transparent 50%),
+      linear-gradient(160deg, var(--dark-blue) 0%, #232c85 55%, var(--dark-blue) 100%);
+    color:var(--dark-blue);
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220"><g fill="%23ffffff" fill-opacity="0.05"><path d="M40 20c8-4 16-2 19 6 3 8-1 16-9 19-3 1-7 1-10-1-6 10-16 15-25 12-10-3-14-13-9-22 5-9 18-12 28-9 1-2 3-4 6-5z"/><path d="M170 130c8-4 16-2 19 6 3 8-1 16-9 19-3 1-7 1-10-1-6 10-16 15-25 12-10-3-14-13-9-22 5-9 18-12 28-9 1-2 3-4 6-5z"/><circle cx="115" cy="45" r="2.5"/><circle cx="128" cy="55" r="2.5"/><circle cx="141" cy="66" r="2.5"/><circle cx="154" cy="77" r="2.5"/><circle cx="15" cy="150" r="2.5"/><circle cx="28" cy="161" r="2.5"/><circle cx="41" cy="172" r="2.5"/><circle cx="54" cy="183" r="2.5"/></g></svg>');
+    background-size:220px 220px;
+    pointer-events:none;
+    z-index:0;
+  }
+  #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px 48px;}
+
+  .screen{width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;animation:fadeIn .5s ease;}
+  .hidden{display:none !important;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---------- Card ---------- */
+  .card{
+    background:var(--white);
+    border-radius:28px;
+    box-shadow:0 20px 45px rgba(0,0,0,0.28);
+    padding:32px 24px;
+    width:100%;
+  }
+
+  /* ---------- Welcome screen ---------- */
+  .logo-badge{
+    width:88px;height:88px;border-radius:50%;
+    background:linear-gradient(135deg,var(--light-blue),var(--dark-blue));
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:18px;
+    box-shadow:0 10px 25px rgba(1,165,220,0.45);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  .logo-badge svg{width:52px;height:52px;}
+  .logo-badge .emoji{font-size:46px;line-height:1;}
+
+  .title-main{
+    color:var(--white);
+    text-align:center;
+    font-size:28px;
+    font-weight:800;
+    margin:4px 0 6px;
+    letter-spacing:.5px;
+    text-shadow:0 3px 10px rgba(0,0,0,0.25);
+  }
+  .subtitle{
+    color:rgba(255,255,255,0.88);
+    text-align:center;
+    font-size:15px;
+    margin:0 0 26px;
+    line-height:1.5;
+  }
+  .field-label{font-size:14px;font-weight:700;color:var(--dark-blue);margin-bottom:8px;display:block;}
+  .name-input{
+    width:100%;
+    padding:14px 16px;
+    border-radius:14px;
+    border:2px solid #e2e6f5;
+    font-size:16px;
+    outline:none;
+    margin-bottom:18px;
+    transition:border-color .2s;
+    color:var(--dark-blue);
+  }
+  .name-input:focus{border-color:var(--light-blue);}
+  .btn-primary{
+    width:100%;
+    padding:15px 18px;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(135deg,var(--light-blue),var(--dark-blue));
+    color:var(--white);
+    font-size:17px;
+    font-weight:800;
+    letter-spacing:.5px;
+    cursor:pointer;
+    box-shadow:0 10px 20px rgba(1,165,220,0.35);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .btn-primary:active{transform:scale(.97);}
+  .btn-primary:hover{box-shadow:0 12px 26px rgba(1,165,220,0.5);}
+  .btn-secondary{
+    width:100%;
+    padding:13px 18px;
+    border:2px solid var(--dark-blue);
+    border-radius:16px;
+    background:var(--white);
+    color:var(--dark-blue);
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  .error-text{color:#d13b3b;font-size:13px;margin:-10px 0 14px;display:none;}
+
+  /* ---------- Game header ---------- */
+  .game-header{width:100%;text-align:center;margin-bottom:16px;}
+  .game-header h1{
+    color:var(--white);font-size:22px;font-weight:800;margin:0 0 4px;
+    text-shadow:0 3px 8px rgba(0,0,0,0.25);
+  }
+  .player-chip{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.35);
+    color:var(--white);
+    padding:6px 16px;border-radius:999px;font-size:14px;font-weight:600;
+  }
+  .header-row{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    margin-top:8px;
+  }
+  .shuffle-btn{
+    border:none;
+    border-radius:999px;
+    background:linear-gradient(135deg,var(--light-blue),var(--dark-blue));
+    color:var(--white);
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:.3px;
+    padding:11px 26px;
+    cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+    box-shadow:0 8px 20px rgba(1,165,220,0.55);
+    transition:transform .15s, box-shadow .15s;
+    animation:shufflePulse 2.2s ease-in-out infinite;
+  }
+  .shuffle-btn:hover{box-shadow:0 10px 24px rgba(1,165,220,0.7);}
+  .shuffle-btn:active{transform:scale(.94);}
+  .shuffle-btn .icon{display:inline-block;font-size:18px;}
+  .shuffle-btn.spin .icon{animation:shuffleSpin .5s ease;}
+  @keyframes shufflePulse{0%,100%{transform:scale(1);}50%{transform:scale(1.045);}}
+  @keyframes shuffleSpin{from{transform:rotate(0);}to{transform:rotate(180deg);}}
+
+  /* ---------- Board ---------- */
+  .board-card{
+    background:var(--white);
+    border-radius:26px;
+    padding:14px;
+    box-shadow:0 18px 40px rgba(0,0,0,0.3);
+    width:100%;
+  }
+  .board{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:6px;
+  }
+  .cell{
+    position:relative;
+    aspect-ratio:1/1;
+    background:linear-gradient(160deg,#f4f7fd,#e9edfb);
+    border-radius:14px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;
+    user-select:none;
+    border:2px solid transparent;
+    overflow:hidden;
+    transition:transform .12s, border-color .2s, background .2s;
+  }
+  .cell:active{transform:scale(.94);}
+  .cell.free{background:linear-gradient(160deg,#dff2fb,#c9ecfb);cursor:default;}
+  .cell.marked{border-color:var(--light-blue);}
+  .cell.win-line{animation:winPulse 0.9s ease-in-out infinite;}
+  @keyframes winPulse{0%,100%{box-shadow:0 0 0 0 rgba(1,165,220,0.55);}50%{box-shadow:0 0 0 8px rgba(1,165,220,0.15);}}
+
+  .cell .num{
+    font-size:clamp(16px,5.2vw,26px);
+    font-weight:800;
+    color:var(--dark-blue);
+    line-height:1;
+    z-index:1;
+    transition:opacity .2s;
+  }
+  .cell .km{
+    font-size:clamp(8px,2.2vw,11px);
+    font-weight:700;
+    color:var(--light-blue);
+    letter-spacing:1px;
+    z-index:1;
+    transition:opacity .2s;
+  }
+  .cell.marked .num, .cell.marked .km, .cell.free .num, .cell.free .km{opacity:0.32;}
+  .cell .free-label{font-size:clamp(11px,3vw,15px);font-weight:800;color:var(--dark-blue);z-index:1;opacity:.4;}
+
+  /* Shoe marker */
+  .shoe{
+    position:absolute;
+    width:66%;height:66%;
+    z-index:2;
+    display:flex;align-items:center;justify-content:center;
+    pointer-events:none;
+  }
+  .shoe .mark{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;height:100%;
+    font-size:clamp(24px,9vw,42px);
+    line-height:1;
+    transform:rotate(-8deg);
+    filter:drop-shadow(0 3px 6px rgba(1,165,220,0.5));
+  }
+  .shoe.pop-in{animation:shoePop .35s cubic-bezier(.34,1.56,.64,1) forwards;}
+  .shoe.pop-out{animation:shoeFade .3s ease forwards;}
+  @keyframes shoePop{
+    0%{transform:scale(0) rotate(20deg);opacity:0;}
+    60%{transform:scale(1.18) rotate(-12deg);opacity:1;}
+    100%{transform:scale(1) rotate(-8deg);opacity:1;}
+  }
+  @keyframes shoeFade{
+    0%{transform:scale(1) rotate(-8deg);opacity:1;}
+    100%{transform:scale(0.3) rotate(10deg);opacity:0;}
+  }
+  .glow{
+    position:absolute;inset:6%;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(1,165,220,0.45), transparent 70%);
+    z-index:1;
+    opacity:0;
+  }
+  .cell.marked .glow, .cell.free .glow{opacity:1;animation:glowPulse 1.6s ease-in-out infinite;}
+  @keyframes glowPulse{0%,100%{opacity:.55;}50%{opacity:.95;}}
+
+  .motion-line{
+    position:absolute;
+    left:-10%;
+    width:35%;height:3px;
+    background:linear-gradient(90deg, transparent, var(--light-blue));
+    border-radius:3px;
+    opacity:0;
+    z-index:1;
+  }
+  .shoe.pop-in ~ .motion-line, .cell.marked .motion-line{
+    animation:motionStreak .35s ease-out forwards;
+  }
+  @keyframes motionStreak{
+    0%{opacity:0;transform:translateX(0);}
+    30%{opacity:1;}
+    100%{opacity:0;transform:translateX(40%);}
+  }
+
+  /* ---------- New game button ---------- */
+  .newgame-wrap{width:100%;margin-top:18px;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(15,20,55,0.6);
+    display:flex;align-items:center;justify-content:center;
+    z-index:50;
+    padding:20px;
+    animation:fadeIn .25s ease;
+  }
+  .modal-card{
+    background:var(--white);
+    border-radius:26px;
+    padding:32px 26px;
+    max-width:400px;width:100%;
+    text-align:center;
+    box-shadow:0 25px 60px rgba(0,0,0,0.4);
+    position:relative;
+    animation:popModal .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popModal{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .modal-card h2{color:var(--dark-blue);font-size:26px;margin:6px 0 10px;}
+  .modal-card p{color:#3a4270;font-size:15px;line-height:1.6;margin:0 0 8px;}
+  .modal-card .name-highlight{color:var(--light-blue);font-weight:800;}
+
+  .confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:60;}
+
+  .modal-actions{display:flex;gap:10px;margin-top:20px;}
+  .modal-actions button{flex:1;}
+
+  footer.credit{color:rgba(255,255,255,0.55);font-size:12px;margin-top:26px;text-align:center;}
+
+  @media (min-width:600px){
+    .card{padding:44px 40px;}
+    .board-card{padding:20px;}
+    .board{gap:10px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- WELCOME SCREEN -->
+  <div class="screen" id="screen-welcome">
+    <div class="logo-badge">
+      <span class="emoji">🏃</span>
+    </div>
+    <div class="card">
+      <h1 class="title-main" style="color:var(--dark-blue);text-shadow:none;">Move for Good<br>Lucky Bingo</h1>
+      <p class="subtitle" style="color:#5b6390;">ร่วมสนุกกับเกมบิงโก และลุ้นรับรางวัลจากกิจกรรม Move for Good</p>
+      <label class="field-label" for="playerNameInput">กรอกชื่อพนักงาน</label>
+      <input id="playerNameInput" class="name-input" type="text" placeholder="กรุณากรอกชื่อ-นามสกุล" maxlength="40">
+      <div class="error-text" id="nameError">กรุณากรอกชื่อ-นามสกุลก่อนเริ่มเล่น</div>
+      <button class="btn-primary" id="startBtn">เริ่มเล่น</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="screen hidden" id="screen-game">
+    <div class="game-header">
+      <h1>Move for Good Lucky Bingo</h1>
+      <div class="header-row">
+        <div class="player-chip">🏃 ชื่อผู้เล่น: <span id="playerNameDisplay"></span></div>
+        <button class="shuffle-btn" id="shuffleBtn" title="สุ่มกระดานใหม่" type="button"><span class="icon">🔀</span> สุ่มกระดานใหม่</button>
+      </div>
+    </div>
+    <div class="board-card">
+      <div class="board" id="board"></div>
+    </div>
+    <div class="newgame-wrap">
+      <button class="btn-secondary" id="newGameBtn">เริ่มเกมใหม่</button>
+    </div>
+    <footer class="credit">Move for Good • Corporate Wellness Challenge</footer>
+  </div>
+
+</div>
+
+<!-- CONFIRM NEW GAME MODAL -->
+<div class="modal-overlay hidden" id="confirmModal">
+  <div class="modal-card">
+    <h2>เริ่มเกมใหม่?</h2>
+    <p>ระบบจะสุ่มกระดาน Bingo ใหม่ทั้งหมด<br>ชื่อผู้เล่นของคุณจะยังคงเดิม</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="cancelNewGame">ยกเลิก</button>
+      <button class="btn-primary" id="confirmNewGame">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- BINGO WIN MODAL -->
+<div class="modal-overlay hidden" id="winModal">
+  <div class="modal-card">
+    <div style="font-size:44px;">🎉🏃‍♂️🎉</div>
+    <h2>BINGO!</h2>
+    <p>ยินดีด้วย <span class="name-highlight" id="winPlayerName"></span></p>
+    <p>คุณพิชิต Move for Good Lucky Bingo สำเร็จแล้ว!<br>ขอบคุณที่ร่วมสนุกกับกิจกรรม Move for Good</p>
+    <div class="modal-actions">
+      <button class="btn-primary" id="playAgainBtn">เริ่มเกมใหม่</button>
+    </div>
+  </div>
+</div>
+
+<canvas class="confetti-canvas hidden" id="confettiCanvas"></canvas>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Shoe marker (emoji) ----------
+  var SHOE_SVG = '<span class="mark">👟</span>';
+
+  // ---------- State ----------
+  var state = {
+    playerName: "",
+    numbers: [],      // 25 entries: number or "FREE"
+    marked: []        // 25 booleans
+  };
+
+  var WIN_LINES = [
+    [0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24], // rows
+    [0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24], // cols
+    [0,6,12,18,24],[4,8,12,16,20] // diagonals
+  ];
+
+  // ---------- Board generation ----------
+  function generateNumbers(){
+    var pool = [];
+    for (var i=1;i<=75;i++) pool.push(i);
+    // shuffle
+    for (var j=pool.length-1;j>0;j--){
+      var k = Math.floor(Math.random()*(j+1));
+      var tmp = pool[j]; pool[j]=pool[k]; pool[k]=tmp;
+    }
+    var chosen = pool.slice(0,24);
+    var nums = [];
+    var ci = 0;
+    for (var idx=0; idx<25; idx++){
+      if (idx === 12){ nums.push("FREE"); }
+      else { nums.push(chosen[ci]); ci++; }
+    }
+    return nums;
+  }
+
+  function newBoard(){
+    state.numbers = generateNumbers();
+    state.marked = state.numbers.map(function(n){ return n === "FREE"; });
+    renderBoard();
+    clearWinHighlight();
+  }
+
+  // ---------- Rendering ----------
+  var boardEl = document.getElementById('board');
+
+  function renderBoard(){
+    boardEl.innerHTML = "";
+    for (var i=0;i<25;i++){
+      boardEl.appendChild(buildCell(i));
+    }
+  }
+
+  function buildCell(i){
+    var val = state.numbers[i];
+    var isFree = val === "FREE";
+    var cell = document.createElement('div');
+    cell.className = 'cell' + (isFree ? ' free' : '') + (state.marked[i] && !isFree ? ' marked' : '');
+    cell.dataset.index = i;
+
+    var glow = document.createElement('div'); glow.className='glow'; cell.appendChild(glow);
+
+    if (isFree){
+      var lbl = document.createElement('div'); lbl.className='free-label'; lbl.textContent='FREE'; cell.appendChild(lbl);
+    } else {
+      var num = document.createElement('div'); num.className='num'; num.textContent = val; cell.appendChild(num);
+      var km = document.createElement('div'); km.className='km'; km.textContent='KM'; cell.appendChild(km);
+    }
+
+    var shoeWrap = document.createElement('div');
+    shoeWrap.className = 'shoe' + (state.marked[i] ? '' : ' hidden');
+    shoeWrap.innerHTML = SHOE_SVG;
+    cell.appendChild(shoeWrap);
+
+    if (!isFree){
+      cell.addEventListener('click', function(){ toggleCell(parseInt(this.dataset.index,10)); });
+    }
+    return cell;
+  }
+
+  function toggleCell(i){
+    if (state.numbers[i] === "FREE") return;
+    state.marked[i] = !state.marked[i];
+    updateCellDOM(i);
+    var lines = checkBingo();
+    if (lines.length > 0){
+      showWin(lines);
+    } else {
+      clearWinHighlight();
+    }
+  }
+
+  function updateCellDOM(i){
+    var cell = boardEl.querySelector('[data-index="'+i+'"]');
+    if (!cell) return;
+    var shoe = cell.querySelector('.shoe');
+    if (state.marked[i]){
+      cell.classList.add('marked');
+      shoe.classList.remove('hidden','pop-out');
+      shoe.classList.add('pop-in');
+    } else {
+      cell.classList.remove('marked');
+      shoe.classList.remove('pop-in');
+      shoe.classList.add('pop-out');
+      setTimeout(function(){ shoe.classList.add('hidden'); }, 280);
+    }
+  }
+
+  // ---------- Bingo check ----------
+  function checkBingo(){
+    var winners = [];
+    for (var l=0;l<WIN_LINES.length;l++){
+      var line = WIN_LINES[l];
+      var complete = line.every(function(idx){ return state.marked[idx]; });
+      if (complete) winners.push(line);
+    }
+    return winners;
+  }
+
+  function clearWinHighlight(){
+    var cells = boardEl.querySelectorAll('.cell');
+    cells.forEach(function(c){ c.classList.remove('win-line'); });
+  }
+
+  function highlightWin(lines){
+    clearWinHighlight();
+    var seen = {};
+    lines.forEach(function(line){
+      line.forEach(function(idx){
+        if (seen[idx]) return;
+        seen[idx] = true;
+        var cell = boardEl.querySelector('[data-index="'+idx+'"]');
+        if (cell) cell.classList.add('win-line');
+      });
+    });
+  }
+
+  // ---------- Win modal + confetti ----------
+  var winModal = document.getElementById('winModal');
+  var winFired = false;
+
+  function showWin(lines){
+    highlightWin(lines);
+    if (winFired) return;
+    winFired = true;
+    document.getElementById('winPlayerName').textContent = state.playerName;
+    winModal.classList.remove('hidden');
+    launchConfetti();
+  }
+
+  function closeWinModal(){
+    winModal.classList.add('hidden');
+    winFired = false;
+  }
+
+  // ---------- Confetti ----------
+  var confettiCanvas = document.getElementById('confettiCanvas');
+  var confettiCtx = confettiCanvas.getContext('2d');
+  var confettiParticles = [];
+  var confettiRunning = false;
+  var CONFETTI_COLORS = ['#01a5dc','#19226c','#ffffff'];
+
+  function launchConfetti(){
+    confettiCanvas.classList.remove('hidden');
+    resizeConfetti();
+    confettiParticles = [];
+    for (var i=0;i<160;i++){
+      confettiParticles.push({
+        x: Math.random()*confettiCanvas.width,
+        y: -20 - Math.random()*confettiCanvas.height*0.5,
+        vx: (Math.random()-0.5)*3,
+        vy: 2 + Math.random()*4,
+        size: 5 + Math.random()*6,
+        color: CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)],
+        rot: Math.random()*360,
+        vr: (Math.random()-0.5)*10
+      });
+    }
+    if (!confettiRunning){
+      confettiRunning = true;
+      requestAnimationFrame(confettiTick);
+    }
+    setTimeout(function(){ confettiRunning = false; confettiCanvas.classList.add('hidden'); confettiCtx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }, 4200);
+  }
+
+  function resizeConfetti(){
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeConfetti);
+
+  function confettiTick(){
+    confettiCtx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+    confettiParticles.forEach(function(p){
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      confettiCtx.save();
+      confettiCtx.translate(p.x,p.y);
+      confettiCtx.rotate(p.rot*Math.PI/180);
+      confettiCtx.fillStyle = p.color;
+      confettiCtx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+      confettiCtx.restore();
+    });
+    if (confettiRunning){
+      requestAnimationFrame(confettiTick);
+    }
+  }
+
+  // ---------- New game flow ----------
+  var confirmModal = document.getElementById('confirmModal');
+
+  document.getElementById('newGameBtn').addEventListener('click', function(){
+    confirmModal.classList.remove('hidden');
+  });
+  document.getElementById('shuffleBtn').addEventListener('click', function(){
+    this.classList.remove('spin');
+    void this.offsetWidth; // restart animation
+    this.classList.add('spin');
+    newBoard();
+  });
+  document.getElementById('cancelNewGame').addEventListener('click', function(){
+    confirmModal.classList.add('hidden');
+  });
+  document.getElementById('confirmNewGame').addEventListener('click', function(){
+    confirmModal.classList.add('hidden');
+    newBoard();
+  });
+  document.getElementById('playAgainBtn').addEventListener('click', function(){
+    closeWinModal();
+    newBoard();
+  });
+
+  // ---------- Welcome -> Game ----------
+  var screenWelcome = document.getElementById('screen-welcome');
+  var screenGame = document.getElementById('screen-game');
+  var nameInput = document.getElementById('playerNameInput');
+  var nameError = document.getElementById('nameError');
+
+  document.getElementById('startBtn').addEventListener('click', function(){
+    var name = nameInput.value.trim();
+    if (!name){
+      nameError.style.display = 'block';
+      nameInput.focus();
+      return;
+    }
+    nameError.style.display = 'none';
+    state.playerName = name;
+    document.getElementById('playerNameDisplay').textContent = name;
+    screenWelcome.classList.add('hidden');
+    screenGame.classList.remove('hidden');
+    newBoard();
+  });
+
+  nameInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') document.getElementById('startBtn').click();
+  });
+
+})();
+</script>
+</body>
+</html>
